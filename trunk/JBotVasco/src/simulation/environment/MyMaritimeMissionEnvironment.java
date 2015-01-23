@@ -28,11 +28,12 @@ public class MyMaritimeMissionEnvironment extends Environment {
 
 	private Line heading;
 
-	private double baseRadius = 1;
+	private double baseRadius = .5;
 	private boolean randomWPs = false;
 	private boolean constantWPQnt = false;
 	private boolean drawWPCentroide = false;
 	private boolean headingLine = false;
+	private boolean drawBase = false;
 
 	private double min = 500;
 	private double max = 100;
@@ -56,6 +57,7 @@ public class MyMaritimeMissionEnvironment extends Environment {
 		drawWPCentroide = args.getArgumentAsIntOrSetDefault("drawWPCentroide",
 				0) == 1;
 		headingLine = args.getArgumentAsIntOrSetDefault("headingLine", 0) == 1;
+		drawBase = args.getArgumentAsIntOrSetDefault("drawBase", 0) == 1;
 	}
 
 	@Override
@@ -94,10 +96,12 @@ public class MyMaritimeMissionEnvironment extends Environment {
 			waypoints.add(wp);
 		}
 
-		bases.add(createWP(simulator, BASE_NAME + (baseNumber++), 0, 0,
-				baseRadius));
-		bases.getLast().setColor(Color.GREEN);
-		addObject(bases.getLast());
+		if (drawBase) {
+			bases.add(createWP(simulator, BASE_NAME + (baseNumber++), 0, 0,
+					baseRadius));
+			bases.getLast().setColor(Color.GREEN);
+			addObject(bases.getLast());
+		}
 
 		for (Robot r : robots) {
 			double distance = baseRadius * simulator.getRandom().nextDouble();

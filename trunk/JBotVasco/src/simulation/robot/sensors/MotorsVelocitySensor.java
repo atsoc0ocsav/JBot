@@ -2,6 +2,7 @@ package simulation.robot.sensors;
 
 import simulation.Simulator;
 import simulation.robot.Robot;
+import simulation.robot.actuators.FaultyTwoWheelActuator;
 import simulation.robot.actuators.TwoWheelActuator;
 import simulation.robot.sensors.Sensor;
 import simulation.util.Arguments;
@@ -19,8 +20,8 @@ public class MotorsVelocitySensor extends Sensor {
 	 */
 	@Override
 	public double getSensorReading(int sensorNumber) {
-		TwoWheelActuator actuator = (TwoWheelActuator) robot
-				.getActuatorByType(TwoWheelActuator.class);
+		FaultyTwoWheelActuator actuator = (FaultyTwoWheelActuator) robot
+				.getActuatorByType(FaultyTwoWheelActuator.class);
 		double[] velocity = actuator.getSpeed();
 
 		switch (sensorNumber) {
@@ -40,7 +41,7 @@ public class MotorsVelocitySensor extends Sensor {
 	}
 
 	public double getMotorMaxVelocity() {
-		return ((TwoWheelActuator) robot
-				.getActuatorByType(TwoWheelActuator.class)).getMaxSpeed();
+		return ((FaultyTwoWheelActuator) robot
+				.getActuatorByType(FaultyTwoWheelActuator.class)).getMaxSpeed();
 	}
 }

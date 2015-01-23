@@ -1,48 +1,38 @@
 package evolutionaryrobotics.evaluationfunctions;
 
-import mathutils.Vector2d;
+import java.awt.Color;
+
 import simulation.Simulator;
-import simulation.environment.RoundForageEnvironment;
 import simulation.robot.Robot;
-import simulation.robot.sensors.PreyCarriedSensor;
+import simulation.robot.actuators.FaultyTwoWheelActuator;
+import simulation.robot.actuators.RobotColorActuator;
 import simulation.util.Arguments;
 
-public class FaultDetectionEvaluationFunction extends EvaluationFunction{
-	private Vector2d   nestPosition = new Vector2d(0, 0);
-	private int numberOfFoodForaged = 0;
-
+public class FaultDetectionEvaluationFunction extends EvaluationFunction {
 	public FaultDetectionEvaluationFunction(Arguments args) {
-		super(args);	
+		super(args);
 	}
 
-	//@Override
+	// @Override
 	public double getFitness() {
-		return fitness + numberOfFoodForaged;
+		return fitness;
 	}
 
-	//@Override
-	public void update(Simulator simulator) {			
-		int numberOfRobotsWithPrey       = 0;
-		int numberOfRobotsBeyondForbidenLimit       = 0;
-		int numberOfRobotsBeyondForagingLimit       = 0;
-		
-		double forbidenArea =  ((RoundForageEnvironment)(simulator.getEnvironment())).getForbiddenArea();
-		double foragingArea =  ((RoundForageEnvironment)(simulator.getEnvironment())).getForageRadius();	
+	// @Override
+	public void update(Simulator simulator) {
+		for (Robot r : simulator.getEnvironment().getRobots()) {
+			FaultyTwoWheelActuator faultyTwoWheelActuator = ((FaultyTwoWheelActuator) r
+					.getActuatorByType(FaultyTwoWheelActuator.class));
+			RobotColorActuator robotColorActuator = ((RobotColorActuator) r
+					.getActuatorByType(RobotColorActuator.class));
 
-		for(Robot r : simulator.getEnvironment().getRobots()){
-			double distanceToNest = r.getPosition().distanceTo(nestPosition);
+			boolean faultyCondition = faultyTwoWheelActuator.isFailing()
+					&& robotColorActuator.getColor() == Color.RED;
+			boolean goodCondition = !faultyTwoWheelActuator.isFailing()
+					&& robotColorActuator.getColor() == Color.GREEN;
 
-			if(distanceToNest > forbidenArea){
-				numberOfRobotsBeyondForbidenLimit++;
-			} else 	if(distanceToNest > foragingArea){
-				numberOfRobotsBeyondForagingLimit++;
-			}
-			
-			if (((PreyCarriedSensor)r.getSensorByType(PreyCarriedSensor.class)).preyCarried()) {
-				numberOfRobotsWithPrey++;
-			}
+			fitness += faultyCondition ? 1 : 0;
+			fitness += goodCondition ? 1 : 0;
 		}
-		fitness += (double) numberOfRobotsWithPrey * 0.001 + numberOfRobotsBeyondForbidenLimit * -0.1 + numberOfRobotsBeyondForagingLimit * -0.0001;
-		numberOfFoodForaged = ((RoundForageEnvironment)(simulator.getEnvironment())).getNumberOfFoodSuccessfullyForaged();
 	}
 }

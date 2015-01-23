@@ -1,5 +1,6 @@
-package controllers;
+package evolutionaryrobotics.neuralnetworks;
 
+import controllers.Controller;
 import simulation.Simulator;
 import simulation.robot.DifferentialDriveRobot;
 import simulation.robot.Robot;

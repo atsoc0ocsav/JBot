@@ -1,5 +1,8 @@
-package controllers;
+package evolutionaryrobotics.neuralnetworks;
 
+import java.awt.Color;
+
+import controllers.Controller;
 import mathutils.Vector2d;
 import net.jafama.FastMath;
 import simulation.Simulator;
@@ -7,7 +10,6 @@ import simulation.environment.MyMaritimeMissionEnvironment;
 import simulation.physicalobjects.LightPole;
 import simulation.robot.Robot;
 import simulation.robot.actuators.FaultyTwoWheelActuator;
-import simulation.robot.actuators.TwoWheelActuator;
 import simulation.util.Arguments;
 
 public class PassByWaypointsController extends Controller {
@@ -16,26 +18,74 @@ public class PassByWaypointsController extends Controller {
 	private static double ANGLE_TOLERANCE = 10;
 
 	private double maxSpeed = 0;
+	private double failureProbability = 0;
+	private int failureInstant = 0;
+
+	private boolean failureActive = false;
+
 	private MyMaritimeMissionEnvironment env;
 	private Robot robot;
 	private FaultyTwoWheelActuator twoWheelActuator;
+	private Simulator simulator;
 
 	public PassByWaypointsController(Simulator simulator, Robot robot,
 			Arguments args) {
 		super(simulator, robot, args);
-		env = (MyMaritimeMissionEnvironment) simulator.getEnvironment();
 		this.robot = robot;
+		this.simulator = simulator;
 
-		if (maxSpeed == 0)
-			maxSpeed = ((TwoWheelActuator) robot
-					.getActuatorByType(TwoWheelActuator.class)).getMaxSpeed();
+		env = (MyMaritimeMissionEnvironment) simulator.getEnvironment();
 
 		twoWheelActuator = (FaultyTwoWheelActuator) robot
-				.getActuatorByType(TwoWheelActuator.class);
+				.getActuatorByType(FaultyTwoWheelActuator.class);
+
+		if (maxSpeed == 0) {
+			maxSpeed = twoWheelActuator.getMaxSpeed();
+		}
+
+		failureProbability = args.getArgumentAsDoubleOrSetDefault(
+				"failureProbability", failureProbability);
+
+		if (simulator.getRandom().nextDouble() < failureProbability) {
+			boolean exit = false;
+			do {
+				failureInstant = (int) (simulator.getEnvironment().getSteps() * simulator
+						.getRandom().nextDouble());
+				if (failureInstant + twoWheelActuator.getFailureDuration() < simulator
+						.getEnvironment().getSteps()) {
+					exit = true;
+				}
+			} while (!exit);
+
+			failureActive = true;
+			//System.out.println("Time=" + failureInstant);
+		} else {
+			failureActive = false;
+		}
 	}
 
 	@Override
 	public void controlStep(double time) {
+		if (failureActive) {
+			if (time == failureInstant) {
+				((FaultyTwoWheelActuator) robot
+						.getActuatorByType(FaultyTwoWheelActuator.class))
+						.activateFailure();
+			}
+
+			if (twoWheelActuator.isFailing()) {
+				env.getBases().peek().setColor(Color.RED);
+			} else {
+				env.getBases().peek().setColor(Color.GREEN);
+			}
+		} else {
+			env.getBases().peek().setColor(Color.BLUE);
+		}
+
+		orientToAzimut();
+	}
+
+	public void orientToAzimut() {
 		Vector2d robotPos = robot.getPosition();
 		LightPole wp = env.getWaypoints().peek();
 
@@ -64,8 +114,10 @@ public class PassByWaypointsController extends Controller {
 		 * FastMath.PI)); System.out.println("Diff: " + diff);
 		 * System.out.println("###########################################");
 		 */
+
 		if (Math.abs(diff) <= ANGLE_TOLERANCE) {
-			double dist = robotPos.distanceTo(wp.getPosition());
+			double dist = robot.getPosition().distanceTo(
+					env.getWaypoints().peek().getPosition());
 			double velocity = (1 - 1 / (dist + DESACELERATION_COEFF))
 					* maxSpeed;
 			twoWheelActuator.setWheelSpeed(velocity, velocity);
