@@ -5,8 +5,8 @@ import net.jafama.FastMath;
 import simulation.Simulator;
 import simulation.environment.MyMaritimeMissionEnvironment;
 import simulation.physicalobjects.LightPole;
-import simulation.robot.DifferentialDriveRobot;
 import simulation.robot.Robot;
+import simulation.robot.actuators.FaultyTwoWheelActuator;
 import simulation.robot.actuators.TwoWheelActuator;
 import simulation.util.Arguments;
 
@@ -18,7 +18,7 @@ public class PassByWaypointsController extends Controller {
 	private double maxSpeed = 0;
 	private MyMaritimeMissionEnvironment env;
 	private Robot robot;
-	private TwoWheelActuator twoWheelActuator;
+	private FaultyTwoWheelActuator twoWheelActuator;
 
 	public PassByWaypointsController(Simulator simulator, Robot robot,
 			Arguments args) {
@@ -30,7 +30,7 @@ public class PassByWaypointsController extends Controller {
 			maxSpeed = ((TwoWheelActuator) robot
 					.getActuatorByType(TwoWheelActuator.class)).getMaxSpeed();
 
-		twoWheelActuator = (TwoWheelActuator) robot
+		twoWheelActuator = (FaultyTwoWheelActuator) robot
 				.getActuatorByType(TwoWheelActuator.class);
 	}
 
