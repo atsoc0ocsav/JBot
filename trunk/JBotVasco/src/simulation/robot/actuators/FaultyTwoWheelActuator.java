@@ -13,8 +13,9 @@ public class FaultyTwoWheelActuator extends TwoWheelActuator {
 	private double shaftToFailProbability = .5;
 	private double failureSpeed = 0;
 
-	// Percentage of time to be in failure status, from the total of timesteps
-	private double failureTimePercentage = 0;
+	private double leftMotorSpeed = 0;
+	private double rightMotorSpeed = 0;
+
 	private int failureDuration = 75;
 	private int currentDuration = 0;
 
@@ -23,6 +24,7 @@ public class FaultyTwoWheelActuator extends TwoWheelActuator {
 
 	private boolean failureModeActivated = false;
 	private boolean inFailure = false;
+	private boolean forEverFailure = true;
 
 	public FaultyTwoWheelActuator(Simulator simulator, int id,
 			Arguments arguments) {
@@ -33,22 +35,10 @@ public class FaultyTwoWheelActuator extends TwoWheelActuator {
 		shaftToFailProbability = arguments.getArgumentAsDoubleOrSetDefault(
 				"shaftToFailProbability", shaftToFailProbability);
 
-		failureTimePercentage = arguments.getArgumentAsDoubleOrSetDefault(
-				"failureTimePercentage", -1);
-
-		if (failureTimePercentage == -1 || failureTimePercentage > 1
-				|| failureTimePercentage < 0) {
-			failureTimePercentage = failureDuration
-					/ simulator.getEnvironment().getSteps();
-		} else {
-			failureDuration = (int) (simulator.getEnvironment().getSteps() * failureTimePercentage);
-
-			if (failureTimePercentage == 0) {
-				failureModeActivated = false;
-			}
-		}
-
 		failureDuration *= (1 + random.nextGaussian() * NOISESTDEV_DURATION);
+
+		forEverFailure = arguments.getArgumentAsIntOrSetDefault(
+				"forEverFailure", 1) == 1;
 	}
 
 	@Override
@@ -60,10 +50,9 @@ public class FaultyTwoWheelActuator extends TwoWheelActuator {
 
 	@Override
 	public void apply(Robot robot) {
-		if (failureModeActivated && currentDuration < failureDuration) {
-			inFailure = true;
-
-			if (currentDuration == 0) {
+		if (failureModeActivated
+				&& (currentDuration < failureDuration || forEverFailure)) {
+			if (!inFailure) {
 				// Left Motor
 				if (random.nextDouble() < shaftToFailProbability) {
 					shaftInFailure = -1;
@@ -73,20 +62,26 @@ public class FaultyTwoWheelActuator extends TwoWheelActuator {
 				}
 			}
 
+			inFailure = true;
+			
 			if (shaftInFailure == 1) {
-				leftSpeed = failureSpeed;
-				rightSpeed *= (1 + random.nextGaussian() * NOISESTDEV);
+				leftMotorSpeed = failureSpeed;
+				rightMotorSpeed = rightSpeed
+						* (1 + random.nextGaussian() * NOISESTDEV);
 			} else {
 				if (shaftInFailure == -1) {
-					leftSpeed *= (1 + random.nextGaussian() * NOISESTDEV);
-					rightSpeed = failureSpeed;
+					leftMotorSpeed = leftSpeed
+							* (1 + random.nextGaussian() * NOISESTDEV);
+					rightMotorSpeed = failureSpeed;
 				}
 			}
 
 			currentDuration++;
 		} else {
-			leftSpeed *= (1 + random.nextGaussian() * NOISESTDEV);
-			rightSpeed *= (1 + random.nextGaussian() * NOISESTDEV);
+			leftMotorSpeed = (double)leftSpeed
+					* (1 + random.nextGaussian() * NOISESTDEV);
+			rightMotorSpeed = (double)rightSpeed
+					* (1 + random.nextGaussian() * NOISESTDEV);
 
 			inFailure = false;
 			shaftInFailure = 0;
@@ -94,17 +89,18 @@ public class FaultyTwoWheelActuator extends TwoWheelActuator {
 			currentDuration = 0;
 		}
 
-		if (leftSpeed < -maxSpeed)
-			leftSpeed = -maxSpeed;
-		else if (leftSpeed > maxSpeed)
-			leftSpeed = maxSpeed;
+		if (leftMotorSpeed < -maxSpeed)
+			leftMotorSpeed = -maxSpeed;
+		else if (leftMotorSpeed > maxSpeed)
+			leftMotorSpeed = maxSpeed;
 
-		if (rightSpeed < -maxSpeed)
-			rightSpeed = -maxSpeed;
-		else if (rightSpeed > maxSpeed)
-			rightSpeed = maxSpeed;
+		if (rightMotorSpeed < -maxSpeed)
+			rightMotorSpeed = -maxSpeed;
+		else if (rightMotorSpeed > maxSpeed)
+			rightMotorSpeed = maxSpeed;
 
-		((DifferentialDriveRobot) robot).setWheelSpeed(leftSpeed, rightSpeed);
+		((DifferentialDriveRobot) robot).setWheelSpeed(leftMotorSpeed,
+				rightMotorSpeed);
 	}
 
 	public boolean isInFailureMode() {

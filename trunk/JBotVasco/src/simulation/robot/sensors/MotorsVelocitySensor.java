@@ -2,15 +2,20 @@ package simulation.robot.sensors;
 
 import simulation.Simulator;
 import simulation.robot.Robot;
-import simulation.robot.actuators.FaultyTwoWheelActuator;
 import simulation.robot.actuators.TwoWheelActuator;
-import simulation.robot.sensors.Sensor;
 import simulation.util.Arguments;
 
 public class MotorsVelocitySensor extends Sensor {
+	private String actuatorName;
+
 	public MotorsVelocitySensor(Simulator simulator, int id, Robot robot,
-			Arguments args) {
+			Arguments args) throws ClassNotFoundException {
 		super(simulator, id, robot, args);
+
+		actuatorName = args.getArgumentAsString("actuatorName");
+
+		if (actuatorName == null)
+			throw new ClassNotFoundException("Illegal Class Name");
 	}
 
 	/**
@@ -20,16 +25,21 @@ public class MotorsVelocitySensor extends Sensor {
 	 */
 	@Override
 	public double getSensorReading(int sensorNumber) {
-		FaultyTwoWheelActuator actuator = (FaultyTwoWheelActuator) robot
-				.getActuatorByType(FaultyTwoWheelActuator.class);
-		double[] velocity = actuator.getSpeed();
+		try {
+			TwoWheelActuator actuator = (TwoWheelActuator) robot
+					.getActuatorByType(Class.forName(actuatorName));
+			double[] velocity = actuator.getSpeed();
 
-		switch (sensorNumber) {
-		case 0:
-			return velocity[0];
-		case 1:
-			return velocity[1];
-		default:
+			switch (sensorNumber) {
+			case 0:
+				return velocity[0];
+			case 1:
+				return velocity[1];
+			default:
+				return 0;
+			}
+		} catch (ClassNotFoundException e) {
+			System.err.println(e.getMessage());
 			return 0;
 		}
 	}
@@ -41,7 +51,12 @@ public class MotorsVelocitySensor extends Sensor {
 	}
 
 	public double getMotorMaxVelocity() {
-		return ((FaultyTwoWheelActuator) robot
-				.getActuatorByType(FaultyTwoWheelActuator.class)).getMaxSpeed();
+		try {
+			return ((TwoWheelActuator) robot.getActuatorByType(Class
+					.forName(actuatorName))).getMaxSpeed();
+		} catch (ClassNotFoundException e) {
+			System.err.println(e.getMessage());
+			return 0;
+		}
 	}
 }

@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import net.jafama.FastMath;
 import mathutils.Vector2d;
 import objects.Waypoint;
 import simulation.Simulator;
@@ -13,7 +14,6 @@ import simulation.physicalobjects.PhysicalObject;
 import simulation.physicalobjects.PhysicalObjectType;
 import simulation.robot.Robot;
 import simulation.util.Arguments;
-
 import commoninterface.AquaticDroneCI;
 import commoninterface.utils.CoordinateUtilities;
 
@@ -40,6 +40,7 @@ public class MyMaritimeMissionEnvironment extends Environment {
 	private int baseNumber = 0;
 	private int waypointNumber = 0;
 	private int waypointQuantity = 4;
+	private int azimuteLineLenght = 10;
 
 	public Simulator sim;
 
@@ -64,36 +65,38 @@ public class MyMaritimeMissionEnvironment extends Environment {
 	public void setup(Simulator simulator) {
 		super.setup(simulator);
 
-		if (randomWPs) {
-			for (int i = 0; i < waypointQuantity; i++) {
-				LightPole wp = createRandomWP(simulator, WAYPOINTS_NAME + i);
-				wp.setColor(new Color(
-						(int) simulator.getRandom().nextDouble() * 16777216));
+		if (waypointQuantity != 0) {
+			if (randomWPs) {
+				for (int i = 0; i < waypointQuantity; i++) {
+					LightPole wp = createRandomWP(simulator, WAYPOINTS_NAME + i);
+					wp.setColor(new Color((int) simulator.getRandom()
+							.nextDouble() * 16777216));
+					addObject(wp);
+					waypoints.add(wp);
+				}
+			} else {
+				double width = min + simulator.getRandom().nextDouble()
+						* (max - min);
+				double height = min + simulator.getRandom().nextDouble()
+						* (max - min);
+
+				LightPole wp = createWP(simulator, WAYPOINTS_NAME
+						+ (waypointNumber++), width, height);
+				addObject(wp);
+				waypoints.add(wp);
+				wp = createWP(simulator, WAYPOINTS_NAME + (waypointNumber++),
+						-width, height);
+				addObject(wp);
+				waypoints.add(wp);
+				wp = createWP(simulator, WAYPOINTS_NAME + (waypointNumber++),
+						-width, -height);
+				addObject(wp);
+				waypoints.add(wp);
+				wp = createWP(simulator, WAYPOINTS_NAME + (waypointNumber++),
+						width, -height);
 				addObject(wp);
 				waypoints.add(wp);
 			}
-		} else {
-			double width = min + simulator.getRandom().nextDouble()
-					* (max - min);
-			double height = min + simulator.getRandom().nextDouble()
-					* (max - min);
-
-			LightPole wp = createWP(simulator, WAYPOINTS_NAME
-					+ (waypointNumber++), width, height);
-			addObject(wp);
-			waypoints.add(wp);
-			wp = createWP(simulator, WAYPOINTS_NAME + (waypointNumber++),
-					-width, height);
-			addObject(wp);
-			waypoints.add(wp);
-			wp = createWP(simulator, WAYPOINTS_NAME + (waypointNumber++),
-					-width, -height);
-			addObject(wp);
-			waypoints.add(wp);
-			wp = createWP(simulator, WAYPOINTS_NAME + (waypointNumber++),
-					width, -height);
-			addObject(wp);
-			waypoints.add(wp);
 		}
 
 		if (drawBase) {
@@ -164,14 +167,39 @@ public class MyMaritimeMissionEnvironment extends Environment {
 		}
 
 		if (headingLine) {
-			Vector2d robotPosition = sim.getRobots().get(0).getPosition();
-			Vector2d firstWPPosition = waypoints.peekFirst().getPosition();
-			if (firstWPPosition != null) {
+			if (waypointQuantity > 0) {
+				Vector2d robotPosition = sim.getRobots().get(0).getPosition();
+				Vector2d firstWPPosition = waypoints.peekFirst().getPosition();
+				if (firstWPPosition != null) {
+					heading = new Line(simulator, HEADING_LINE_NAME,
+							robotPosition.x, robotPosition.y,
+							firstWPPosition.x, firstWPPosition.y);
+					heading.setColor(Color.RED);
+					addObject(heading);
+				}
+			} else {
+				double headingAngle = sim.getRobots().get(0).getOrientation();
+				
+				if(headingAngle<0){
+					headingAngle+=FastMath.PI*2;
+				}
+				
+				Vector2d robotPosition = sim.getRobots().get(0).getPosition();
+				Vector2d remotePosition = new Vector2d(azimuteLineLenght
+						* FastMath.cos(headingAngle), azimuteLineLenght
+						* FastMath.sin(headingAngle));
+				
 				heading = new Line(simulator, HEADING_LINE_NAME,
-						robotPosition.x, robotPosition.y, firstWPPosition.x,
-						firstWPPosition.y);
+						robotPosition.x, robotPosition.y, remotePosition.x,
+						remotePosition.y);
 				heading.setColor(Color.RED);
 				addObject(heading);
+
+				Line line = new Line(simulator,
+						"original_" + HEADING_LINE_NAME, robotPosition.x,
+						robotPosition.y, remotePosition.x, remotePosition.y);
+				line.setColor(Color.BLUE);
+				addObject(line);
 			}
 		}
 
@@ -188,12 +216,32 @@ public class MyMaritimeMissionEnvironment extends Environment {
 	@Override
 	public void update(double time) {
 		if (headingLine) {
-			Vector2d robotPosition = sim.getRobots().get(0).getPosition();
-			Vector2d firstWPPosition = waypoints.peekFirst().getPosition();
-			if (firstWPPosition != null) {
-				removeObject(heading);
-				heading = new Line(sim, HEADING_LINE_NAME, robotPosition.x,
-						robotPosition.y, firstWPPosition.x, firstWPPosition.y);
+			if (waypointQuantity > 0) {
+				Vector2d robotPosition = sim.getRobots().get(0).getPosition();
+				Vector2d firstWPPosition = waypoints.peekFirst().getPosition();
+				if (firstWPPosition != null) {
+					removeObject(heading);
+					heading = new Line(sim, HEADING_LINE_NAME, robotPosition.x,
+							robotPosition.y, firstWPPosition.x,
+							firstWPPosition.y);
+					heading.setColor(Color.RED);
+					addObject(heading);
+				}
+			} else {
+				double headingAngle = sim.getRobots().get(0).getOrientation();
+				
+				if(headingAngle<0){
+					headingAngle+=FastMath.PI*2;
+				}
+				
+				Vector2d robotPosition = sim.getRobots().get(0).getPosition();
+				Vector2d remotePosition = new Vector2d(azimuteLineLenght
+						* FastMath.cos(headingAngle), azimuteLineLenght
+						* FastMath.sin(headingAngle));
+
+				heading = new Line(sim, HEADING_LINE_NAME,
+						robotPosition.x, robotPosition.y, remotePosition.x,
+						remotePosition.y);
 				heading.setColor(Color.RED);
 				addObject(heading);
 			}
