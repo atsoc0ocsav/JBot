@@ -7,8 +7,8 @@ import evolutionaryrobotics.JBotEvolver;
 import gui.evolution.EvolutionGui;
 
 public class MultipleEMain extends Thread {
-	public static String FOLDER = "conf_files";
-	public static String CONFIG_FILES_START_NAME = "faultDetection_";
+	public static String FOLDER = "to_run";
+	public static String CONFIG_FILES_START_NAME = "faultDetection_simple_";
 	public static String EXTENSION = ".conf";
 
 	public static String fileToExclude = "faultDetection_base.conf";
@@ -20,10 +20,9 @@ public class MultipleEMain extends Thread {
 		File[] listOfFiles = folder.listFiles();
 
 		for (int i = 0; i < listOfFiles.length; i++) {
-			if (listOfFiles[i].isFile()
-					&& listOfFiles[i].getName().startsWith(
-							CONFIG_FILES_START_NAME)
-					&& !listOfFiles[i].equals(fileToExclude)) {
+			if (listOfFiles[i].isFile() && 
+				listOfFiles[i].getName().startsWith(CONFIG_FILES_START_NAME) && 
+				!listOfFiles[i].equals(fileToExclude)) {
 				System.out.println("Created EMain Thread! ["+i+"]");
 				new MultipleEMain(FOLDER + "/" + listOfFiles[i].getName()).start();
 			}
