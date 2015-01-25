@@ -2,6 +2,8 @@ package evolutionaryrobotics.evaluationfunctions;
 
 import java.awt.Color;
 
+import evolutionaryrobotics.neuralnetworks.GoStraightController;
+import evolutionaryrobotics.neuralnetworks.HibridNeuralNetworkController;
 import simulation.Simulator;
 import simulation.robot.Robot;
 import simulation.robot.actuators.FaultyTwoWheelActuator;
@@ -26,13 +28,19 @@ public class FaultDetectionEvaluationFunction extends EvaluationFunction {
 			RobotColorActuator robotColorActuator = ((RobotColorActuator) r
 					.getActuatorByType(RobotColorActuator.class));
 
+			double failureProbability = ((GoStraightController) ((HibridNeuralNetworkController) r
+					.getController()).getSecondController())
+					.getFailureProbability();
+
 			boolean faultyCondition = faultyTwoWheelActuator.isFailing()
 					&& robotColorActuator.getColor() == Color.RED;
 			boolean goodCondition = !faultyTwoWheelActuator.isFailing()
 					&& robotColorActuator.getColor() == Color.GREEN;
 
-			fitness += faultyCondition ? 1 : 0;
-			fitness += goodCondition ? 1 : 0;
+			fitness += ((faultyCondition ? 1.0 : 0.0) / 100)
+					* failureProbability;
+			fitness += ((goodCondition ? 1.0 : 0.0) / 100)
+					* (1 - failureProbability);
 		}
 	}
 }

@@ -6,7 +6,7 @@ import gui.evolution.EvolutionGui;
 
 public class EMain {
 	public static String FOLDER = "conf_files";
-	public static String CONFIG_FILE = "faultDetection.conf";
+	public static String CONFIG_FILE = "faultDetection_simple_version.conf";
 
 	
 public static void main(String[] args) throws Exception {
