@@ -85,11 +85,7 @@ public class GoStraightController extends Controller {
 		if (maxSpeed == 0)
 			maxSpeed = twoWheelActuator.getMaxSpeed();
 
-		if (time >= 100 && time < 200) {
-			twoWheelActuator.setWheelSpeed(0, 0);
-		} else {
-			twoWheelActuator.setWheelSpeed(maxSpeed, maxSpeed);
-		}
+		twoWheelActuator.setWheelSpeed(maxSpeed, maxSpeed);
 	}
 
 	public double getFailureProbability() {
