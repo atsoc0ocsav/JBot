@@ -3,9 +3,7 @@ package evolutionaryrobotics.neuralnetworks;
 import java.awt.Color;
 
 import simulation.Simulator;
-import simulation.environment.Environment;
 import simulation.environment.MyMaritimeMissionEnvironment;
-import simulation.robot.DifferentialDriveRobot;
 import simulation.robot.Robot;
 import simulation.robot.actuators.FaultyTwoWheelActuator;
 import simulation.util.Arguments;
@@ -21,7 +19,7 @@ public class GoStraightController extends Controller {
 	private boolean failureActive = false;
 	private boolean failureForEver = true;
 
-	private Environment env;
+	private MyMaritimeMissionEnvironment env;
 	private FaultyTwoWheelActuator twoWheelActuator;
 
 	public GoStraightController(Simulator simulator, Robot robot, Arguments args) {
@@ -71,14 +69,14 @@ public class GoStraightController extends Controller {
 			}
 
 			if (twoWheelActuator.isFailing()) {
-				((MyMaritimeMissionEnvironment) env).getBases().peek()
+				env.getBases().peek()
 						.setColor(Color.RED);
 			} else {
-				((MyMaritimeMissionEnvironment) env).getBases().peek()
+				env.getBases().peek()
 						.setColor(Color.GREEN);
 			}
 		} else {
-			((MyMaritimeMissionEnvironment) env).getBases().peek()
+			env.getBases().peek()
 					.setColor(Color.BLUE);
 		}
 
@@ -90,5 +88,9 @@ public class GoStraightController extends Controller {
 
 	public double getFailureProbability() {
 		return failureProbability;
+	}
+	
+	public boolean isFailureActive(){
+		return failureActive;				
 	}
 }

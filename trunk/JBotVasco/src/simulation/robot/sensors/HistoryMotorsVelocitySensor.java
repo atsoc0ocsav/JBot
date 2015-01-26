@@ -7,14 +7,11 @@ import simulation.Simulator;
 import simulation.physicalobjects.PhysicalObject;
 import simulation.robot.Robot;
 import simulation.robot.actuators.FaultyTwoWheelActuator;
-import simulation.robot.actuators.TwoWheelActuator;
 import simulation.util.Arguments;
 
 public class HistoryMotorsVelocitySensor extends Sensor {
 	private LinkedList<double[]> history = new LinkedList<>();
-	private int historySize = 5;
-
-	private String actuatorName;
+	private int historySize = 10;
 
 	public HistoryMotorsVelocitySensor(Simulator simulator, int id,
 			Robot robot, Arguments args) throws ClassNotFoundException {
@@ -22,11 +19,6 @@ public class HistoryMotorsVelocitySensor extends Sensor {
 
 		historySize = args.getArgumentAsIntOrSetDefault("historySize",
 				historySize);
-
-		actuatorName = args.getArgumentAsString("actuatorName");
-
-		if (actuatorName == null)
-			throw new ClassNotFoundException("Illegal Class Name");
 	}
 
 	/**
@@ -59,35 +51,25 @@ public class HistoryMotorsVelocitySensor extends Sensor {
 	}
 
 	public double getMotorMaxVelocity() {
-		try {
-			return ((TwoWheelActuator) robot.getActuatorByType(Class
-					.forName(actuatorName))).getMaxSpeed();
-		} catch (ClassNotFoundException e) {
-			System.err.println(e.getMessage());
-			return 0;
-		}
+		return ((FaultyTwoWheelActuator) robot
+				.getActuatorByType(FaultyTwoWheelActuator.class)).getMaxSpeed();
 	}
 
-	// @Override
 	public void updateHistory() {
-		try {
-			TwoWheelActuator actuator = (TwoWheelActuator) robot
-					.getActuatorByType(Class.forName(actuatorName));
+		FaultyTwoWheelActuator actuator = (FaultyTwoWheelActuator) robot
+				.getActuatorByType(FaultyTwoWheelActuator.class);
 
-			if (history.size() >= historySize) {
-				history.pollLast();
-			}
-
-			history.addFirst(actuator.getSpeed());
-		} catch (ClassNotFoundException e) {
-			System.err.println(e.getMessage());
+		if (history.size() >= historySize) {
+			history.pollLast();
 		}
+
+		history.addFirst(actuator.getSpeed());
 	}
 
-	public int getNumberSensedValues() {
+	public int getNumberOfSensors() {
 		return historySize * 2;
 	}
-	
+
 	@Override
 	public void update(double time, ArrayList<PhysicalObject> teleported) {
 		updateHistory();

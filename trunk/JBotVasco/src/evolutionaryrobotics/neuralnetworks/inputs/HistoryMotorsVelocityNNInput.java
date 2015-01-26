@@ -13,7 +13,7 @@ public class HistoryMotorsVelocityNNInput extends NNInput {
 
 	// @Override
 	public int getNumberOfInputValues() {
-		return motorVelocitySensor.getNumberSensedValues();
+		return motorVelocitySensor.getNumberOfSensors();
 	}
 
 	// @Override

@@ -54,7 +54,7 @@ public class MyMaritimeMissionEnvironment extends Environment {
 		waypointQuantity = args.getArgumentAsIntOrSetDefault("WPQuantity",
 				waypointQuantity);
 		randomWPs = args.getArgumentAsIntOrSetDefault("randomWP", 0) == 1;
-		constantWPQnt = args.getArgumentAsIntOrSetDefault("constantWPQnt", 0) == 1;
+		constantWPQnt = args.getArgumentAsIntOrSetDefault("constantWPQnt", 1) == 1;
 		drawWPCentroide = args.getArgumentAsIntOrSetDefault("drawWPCentroide",
 				0) == 1;
 		headingLine = args.getArgumentAsIntOrSetDefault("headingLine", 0) == 1;
