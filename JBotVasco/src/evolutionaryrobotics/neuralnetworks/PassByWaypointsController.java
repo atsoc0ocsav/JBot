@@ -22,17 +22,14 @@ public class PassByWaypointsController extends Controller {
 	private int failureInstant = 0;
 
 	private boolean failureActive = false;
+	private boolean failureForEver = true;
 
 	private MyMaritimeMissionEnvironment env;
-	private Robot robot;
 	private FaultyTwoWheelActuator twoWheelActuator;
-	private Simulator simulator;
 
 	public PassByWaypointsController(Simulator simulator, Robot robot,
 			Arguments args) {
 		super(simulator, robot, args);
-		this.robot = robot;
-		this.simulator = simulator;
 
 		env = (MyMaritimeMissionEnvironment) simulator.getEnvironment();
 
@@ -46,19 +43,24 @@ public class PassByWaypointsController extends Controller {
 		failureProbability = args.getArgumentAsDoubleOrSetDefault(
 				"failureProbability", failureProbability);
 
+		failureForEver = args.getArgumentAsIntOrSetDefault("failureForEver", 1) == 1;
+
 		if (simulator.getRandom().nextDouble() < failureProbability) {
-			boolean exit = false;
-			do {
+			if (failureForEver) {
 				failureInstant = (int) (simulator.getEnvironment().getSteps() * simulator
 						.getRandom().nextDouble());
-				if (failureInstant + twoWheelActuator.getFailureDuration() < simulator
-						.getEnvironment().getSteps()) {
-					exit = true;
-				}
-			} while (!exit);
-
+			} else {
+				boolean exit = false;
+				do {
+					failureInstant = (int) (simulator.getEnvironment()
+							.getSteps() * simulator.getRandom().nextDouble());
+					if (failureInstant + twoWheelActuator.getFailureDuration() < simulator
+							.getEnvironment().getSteps()) {
+						exit = true;
+					}
+				} while (!exit);
+			}
 			failureActive = true;
-			//System.out.println("Time=" + failureInstant);
 		} else {
 			failureActive = false;
 		}
@@ -68,9 +70,7 @@ public class PassByWaypointsController extends Controller {
 	public void controlStep(double time) {
 		if (failureActive) {
 			if (time == failureInstant) {
-				((FaultyTwoWheelActuator) robot
-						.getActuatorByType(FaultyTwoWheelActuator.class))
-						.activateFailure();
+				twoWheelActuator.activateFailure();
 			}
 
 			if (twoWheelActuator.isFailing()) {
@@ -94,8 +94,14 @@ public class PassByWaypointsController extends Controller {
 			wp = env.getWaypoints().peek();
 		}
 
-		Vector2d vecRobotWP = new Vector2d(wp.getPosition().x - robotPos.x,
-				wp.getPosition().y - robotPos.y);
+		double wpX = wp.getPosition().x;
+		double wpY = wp.getPosition().y;
+		double robotX = robot.getPosition().x;
+		double robotY = robot.getPosition().y;
+
+		// Vector2d vecRobotWP = new Vector2d(wp.getPosition().x - robotPos.x,
+		// wp.getPosition().y - robotPos.y);
+		Vector2d vecRobotWP = new Vector2d(wpX - robotX, wpY - robotY);
 
 		double angle = FastMath.atan2(vecRobotWP.y, vecRobotWP.x)
 				- FastMath.atan2(0, 1);
@@ -128,5 +134,9 @@ public class PassByWaypointsController extends Controller {
 				twoWheelActuator.setWheelSpeed(0.1, -0.1);
 			}
 		}
+	}
+	
+	public boolean isFailureActive(){
+		return failureActive;				
 	}
 }
