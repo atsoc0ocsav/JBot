@@ -63,7 +63,7 @@ public class FaultyTwoWheelActuator extends TwoWheelActuator {
 			}
 
 			inFailure = true;
-			
+
 			if (shaftInFailure == 1) {
 				leftMotorSpeed = failureSpeed;
 				rightMotorSpeed = rightSpeed
@@ -78,9 +78,9 @@ public class FaultyTwoWheelActuator extends TwoWheelActuator {
 
 			currentDuration++;
 		} else {
-			leftMotorSpeed = (double)leftSpeed
+			leftMotorSpeed = (double) leftSpeed
 					* (1 + random.nextGaussian() * NOISESTDEV);
-			rightMotorSpeed = (double)rightSpeed
+			rightMotorSpeed = (double) rightSpeed
 					* (1 + random.nextGaussian() * NOISESTDEV);
 
 			inFailure = false;
@@ -121,5 +121,13 @@ public class FaultyTwoWheelActuator extends TwoWheelActuator {
 
 	public int getFailureDuration() {
 		return failureDuration;
+	}
+
+	public boolean isFailingLeft() {
+		return shaftInFailure == -1;
+	}
+
+	public boolean isFailingRight() {
+		return shaftInFailure == 1;
 	}
 }
