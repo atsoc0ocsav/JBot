@@ -8,7 +8,7 @@ import gui.evolution.EvolutionGui;
 
 public class MultipleEMain extends Thread {
 	public static String FOLDER = "to_run";
-	public static String CONFIG_FILES_START_NAME = "faultDetection_";
+	public static String CONFIG_FILES_START_NAME = "faultIdentification_";
 	public static String EXTENSION = ".conf";
 
 	public static String fileToExclude = "faultDetection_base.conf";

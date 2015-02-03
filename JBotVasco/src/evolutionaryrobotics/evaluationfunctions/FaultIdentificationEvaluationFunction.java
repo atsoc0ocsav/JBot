@@ -21,7 +21,7 @@ public class FaultIdentificationEvaluationFunction extends EvaluationFunction {
 	private boolean alreadyDetected = false;
 
 	private int detectionMaxDelay = 0;
-	private double errorCompensation=.75;
+	private double errorCompensation = .40;
 
 	public FaultIdentificationEvaluationFunction(Arguments args) {
 		super(args);
@@ -32,8 +32,9 @@ public class FaultIdentificationEvaluationFunction extends EvaluationFunction {
 				"resetFitnessOnFailure", 1) == 1;
 
 		stopOnFailure = args.getArgumentAsIntOrSetDefault("stopOnFailure", 1) == 1;
-		
-		errorCompensation = args.getArgumentAsDoubleOrSetDefault("errorCompensation", errorCompensation);
+
+		errorCompensation = args.getArgumentAsDoubleOrSetDefault(
+				"errorCompensation", errorCompensation);
 	}
 
 	// @Override
@@ -87,8 +88,8 @@ public class FaultIdentificationEvaluationFunction extends EvaluationFunction {
 				} else {
 					if ((enterInFailure && ((simulator.getTime() - failureMoment) < detectionMaxDelay))
 							&& !alreadyDetected) {
-						// eval 75 ou eval 50
-						fitness += errorCompensation / (simulator.getEnvironment().getSteps());
+						fitness += errorCompensation
+								/ (simulator.getEnvironment().getSteps());
 					} else {
 						if (stopOnFailure) {
 							simulator.stopSimulation();
