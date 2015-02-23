@@ -130,4 +130,9 @@ public class FaultyTwoWheelActuator extends TwoWheelActuator {
 	public boolean isFailingRight() {
 		return shaftInFailure == 1;
 	}
+	
+//	public void setWheelSpeed(double left, double right){
+//		setLeftWheelSpeed(left);
+//		setRightWheelSpeed(right);
+//	}
 }
